@@ -985,7 +985,9 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             return 0;
         }
 
-        case WM_ENTERSIZEMOVE:
+        case WM_ENTERSIZEMOVE:  // xx
+            SetTimer(hWnd, 1, 0, NULL);
+            break;
         case WM_ENTERMENULOOP:
         {
             if (window->win32.frameAction)
@@ -1001,7 +1003,9 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             break;
         }
 
-        case WM_EXITSIZEMOVE:
+        case WM_EXITSIZEMOVE:   // xx
+            KillTimer(hWnd, 1);
+            break;
         case WM_EXITMENULOOP:
         {
             if (window->win32.frameAction)
@@ -1262,6 +1266,29 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             DragFinish(drop);
             return 0;
         }
+
+        // xx
+        // Keeping things moving during Win32 Move/Resize events
+        // https://gamedev.net/forums/topic/672094-keeping-things-moving-during-win32-moveresize-events/5254386/
+        case WM_NCLBUTTONDOWN:
+            if (SendMessage(hWnd, WM_NCHITTEST, wParam, lParam) == HTCAPTION) {
+                POINT point;
+                GetCursorPos(&point);
+                ScreenToClient(hWnd, &point);
+                PostMessage(hWnd, WM_MOUSEMOVE, 0, point.x | point.y << 16);
+            }
+            break;
+            //case WM_ENTERSIZEMOVE:
+            //    SetTimer(hWnd, 1, 0, NULL);
+            //    break;
+            //case WM_EXITSIZEMOVE:
+            //    KillTimer(hWnd, 1);
+            //    break;
+        case WM_TIMER:
+            if (window->callbacks.refresh) {
+                window->callbacks.refresh(window);
+            }
+            break;
     }
 
     return DefWindowProcW(hWnd, uMsg, wParam, lParam);
