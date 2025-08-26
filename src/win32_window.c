@@ -1286,7 +1286,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             //    break;
         case WM_TIMER:
             if (window->callbacks.refresh) {
-                window->callbacks.refresh(window);
+                window->callbacks.refresh((GLFWwindow*)window);
             }
             break;
     }
